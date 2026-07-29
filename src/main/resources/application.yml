@@ -1,0 +1,9 @@
+# Настройки нашего приложения
+server:
+  port: 8080  # На каком порту будет работать наш Spring Boot
+
+# Настройки для внешнего API курсов валют
+external:
+  api:
+    # Адрес ВНЕШНЕГО сервера, к которому наш Spring пойдет как КЛИЕНТ
+    currency-url: "https://api.exchangerate-api.com/v4/latest"
