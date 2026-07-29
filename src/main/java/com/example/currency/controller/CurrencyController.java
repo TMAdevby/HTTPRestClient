@@ -14,17 +14,16 @@ public class CurrencyController {
     }
 
     @GetMapping("/rate")
-    public double getRate(@RequestParam String currency) {
-        // Вызываем сервис
+    public Double getRate(@RequestParam String currency) {
+        System.out.println("=== ПОЛУЧЕН ЗАПРОС ОТ ФРОНТЕНДА ===");
+        System.out.println("Запрошенная валюта: " + currency);
+
         Double rate = currencyService.getExchangeRate(currency);
 
-        // Если курс не найден, возвращаем 0.0
-        if (rate == null) {
-            return 0.0;
-        }
+        System.out.println("Возвращаем фронтенду значение: " + rate);
+        System.out.println("Тип возвращаемого значения: " + (rate != null ? rate.getClass().getName() : "null"));
+        System.out.println("=====================================\n");
 
-        // Явно приводим к double (примитивный тип)
-        // Spring превратит это в JSON число: 92.5
-        return rate.doubleValue();
+        return rate != null ? rate : 0.0;
     }
 }

@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Конвертер валют</title>
     <style>
-        /* Минимальные стили, чтобы было читаемо */
         body {
             font-family: Arial, sans-serif;
             max-width: 600px;
@@ -29,33 +28,57 @@
 
 <p>Нажмите кнопку, чтобы узнать курс валюты к USD:</p>
 
-<!-- Кнопки для запроса разных валют -->
 <button onclick="getRate('RUB')">Рубль (RUB)</button>
 <button onclick="getRate('EUR')">Евро (EUR)</button>
 <button onclick="getRate('GBP')">Фунт (GBP)</button>
 <button onclick="getRate('JPY')">Йена (JPY)</button>
 
-<!-- Сюда будет выведен результат -->
 <div id="result">Нажмите кнопку...</div>
 
 <script>
-    // JavaScript функция для отправки запроса на наш БЭКЕНД
     async function getRate(currency) {
         const resultDiv = document.getElementById('result');
         resultDiv.textContent = 'Загрузка...';
 
         try {
-            // ДЕЛАЕМ HTTP ЗАПРОС НА НАШ ЖЕ БЭКЕНД (не на внешний API!)
-            // Наш Spring Boot контроллер примет этот запрос
+            console.log('=== ОТПРАВКА ЗАПРОСА ===');
+            console.log('Запрашиваем валюту:', currency);
+
+            // Делаем запрос на наш БЭКЕНД
             const response = await fetch(`/api/currency/rate?currency=${currency}`);
 
-            // Получаем число из ответа (например: 92.5)
-            const rate = await response.json();
+            // Получаем СЫРОЙ ТЕКСТ ответа
+            const responseText = await response.text();
+            console.log('Сырой ответ от сервера (текст):', responseText);
+            console.log('Тип данных responseText:', typeof responseText);
 
-            // Показываем результат
-            resultDiv.textContent = `1 USD = ${rate} ${currency}`;
+            // Пытаемся распарсить как JSON
+            let rate;
+            try {
+                rate = JSON.parse(responseText);
+                console.log('Распарсенный JSON:', rate);
+                console.log('Тип данных rate:', typeof rate);
+            } catch (e) {
+                console.error('Не удалось распарсить JSON:', e);
+                resultDiv.textContent = 'Ошибка парсинга ответа от сервера';
+                return;
+            }
+
+            // Проверяем тип данных
+            if (typeof rate === 'number') {
+                console.log('✅ Это число! Показываем результат.');
+                resultDiv.textContent = `1 USD = ${rate} ${currency}`;
+            } else if (typeof rate === 'object' && rate !== null) {
+                console.error('❌ Это объект, а не число!');
+                console.error('Содержимое объекта:', JSON.stringify(rate, null, 2));
+                resultDiv.textContent = `Ошибка: сервер вернул объект вместо числа. Проверьте консоль.`;
+            } else {
+                console.error('❌ Неизвестный тип данных:', typeof rate);
+                resultDiv.textContent = `Ошибка: неожиданный тип данных (${typeof rate})`;
+            }
 
         } catch (error) {
+            console.error('Общая ошибка:', error);
             resultDiv.textContent = 'Ошибка: ' + error.message;
         }
     }

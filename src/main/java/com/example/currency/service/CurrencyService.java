@@ -1,21 +1,17 @@
 package com.example.currency.service;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import java.util.Map;
 
 @Service
 public class CurrencyService {
 
     private final RestClient restClient;
 
-    @Value("${external.api.currency-url}")
-    private String currencyApiUrl;
-
     public CurrencyService(RestClient.Builder restClientBuilder) {
+        // Базовый URL внешнего API
         this.restClient = restClientBuilder
-                .baseUrl(currencyApiUrl)
+                .baseUrl("https://api.exchangerate-api.com/v4/latest")
                 .build();
     }
 
@@ -23,27 +19,40 @@ public class CurrencyService {
      * Получает курс валюты относительно USD
      */
     public Double getExchangeRate(String currencyCode) {
-        // ВАЖНО: Всегда запрашиваем /USD (базовая валюта)
-        // API вернет курсы ВСЕХ валют относительно USD
-        Map<String, Object> response = restClient.get()
-                .uri("/USD")  // <-- ИСПРАВЛЕНО: всегда запрашиваем USD
+        System.out.println("=== ЗАПРОС К ВНЕШНЕМУ API ===");
+        System.out.println("Запрашиваем курс для: " + currencyCode);
+
+        // Делаем запрос и получаем ОТВЕТ КАК СТРОКУ (чтобы увидеть сырой JSON)
+        String jsonResponse = restClient.get()
+                .uri("/USD")  // Всегда запрашиваем базовую валюту USD
                 .retrieve()
-                .body(Map.class);
+                .body(String.class);  // <-- Получаем как String, не как Map!
 
-        // Логируем, что пришло от API (для отладки)
-        System.out.println("Ответ от внешнего API: " + response);
+        System.out.println("Сырой ответ от API:");
+        System.out.println(jsonResponse);
+        System.out.println("================================\n");
 
-        // Достаем карту курсов
-        Map<String, Double> rates = (Map<String, Double>) response.get("rates");
+        // Простой парсинг: ищем строку "RUB":92.5
+        // В реальном проекте используйте Jackson ObjectMapper
+        String searchKey = "\"" + currencyCode.toUpperCase() + "\":";
+        int startIndex = jsonResponse.indexOf(searchKey);
 
-        // Логируем карту курсов
-        System.out.println("Курсы валют: " + rates);
+        if (startIndex == -1) {
+            System.err.println("Валюта " + currencyCode + " не найдена в ответе!");
+            return 0.0;
+        }
 
-        // Возвращаем курс для запрошенной валюты
-        Double rate = rates.get(currencyCode.toUpperCase());
+        // Извлекаем число после ключа
+        startIndex += searchKey.length();
+        int endIndex = jsonResponse.indexOf(",", startIndex);
+        if (endIndex == -1) {
+            endIndex = jsonResponse.indexOf("}", startIndex);
+        }
 
-        // Логируем итоговое значение
-        System.out.println("Курс для " + currencyCode + ": " + rate);
+        String rateStr = jsonResponse.substring(startIndex, endIndex).trim();
+        Double rate = Double.parseDouble(rateStr);
+
+        System.out.println("Извлеченный курс для " + currencyCode + ": " + rate);
 
         return rate;
     }
