@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Конвертер валют</title>
+    <style>
+        /* Минимальные стили, чтобы было читаемо */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<h1>Курс валют (от внешнего API)</h1>
+
+<p>Нажмите кнопку, чтобы узнать курс валюты к USD:</p>
+
+<!-- Кнопки для запроса разных валют -->
+<button onclick="getRate('RUB')">Рубль (RUB)</button>
+<button onclick="getRate('EUR')">Евро (EUR)</button>
+<button onclick="getRate('GBP')">Фунт (GBP)</button>
+<button onclick="getRate('JPY')">Йена (JPY)</button>
+
+<!-- Сюда будет выведен результат -->
+<div id="result">Нажмите кнопку...</div>
+
+<script>
+    // JavaScript функция для отправки запроса на наш БЭКЕНД
+    async function getRate(currency) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.textContent = 'Загрузка...';
+
+        try {
+            // ДЕЛАЕМ HTTP ЗАПРОС НА НАШ ЖЕ БЭКЕНД (не на внешний API!)
+            // Наш Spring Boot контроллер примет этот запрос
+            const response = await fetch(`/api/currency/rate?currency=${currency}`);
+
+            // Получаем число из ответа (например: 92.5)
+            const rate = await response.json();
+
+            // Показываем результат
+            resultDiv.textContent = `1 USD = ${rate} ${currency}`;
+
+        } catch (error) {
+            resultDiv.textContent = 'Ошибка: ' + error.message;
+        }
+    }
+</script>
+</body>
+</html>
