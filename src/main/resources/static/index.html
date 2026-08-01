@@ -2,33 +2,39 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Конвертер валют (Без JS)</title>
+    <title>Конвертер валют (Минимальный JS)</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
         button { margin: 5px; padding: 10px 20px; cursor: pointer; }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
-<h1>Курс валют (только Java + HTML)</h1>
-<p>Нажмите кнопку, чтобы отправить запрос на сервер:</p>
+<h1>Курс валют (HTML + минимальный JS)</h1>
 
-<!-- ФОРМА 1: Рубль -->
-<form action="/api/currency/rate" method="GET">
-    <input type="hidden" name="currency" value="RUB">
-    <button type="submit">Рубль (RUB)</button>
-</form>
+<p>Нажмите кнопку, чтобы узнать курс:</p>
 
-<!-- ФОРМА 2: Евро -->
-<form action="/api/currency/rate" method="GET">
-    <input type="hidden" name="currency" value="EUR">
-    <button type="submit">Евро (EUR)</button>
-</form>
+<!-- Кнопки с onclick -->
+<button onclick="getRate('RUB')">Рубль (RUB)</button>
+<button onclick="getRate('EUR')">Евро (EUR)</button>
+<button onclick="getRate('GBP')">Фунт (GBP)</button>
 
-<!-- ФОРМА 3: Фунт -->
-<form action="/api/currency/rate" method="GET">
-    <input type="hidden" name="currency" value="GBP">
-    <button type="submit">Фунт (GBP)</button>
-</form>
+<!-- Сюда вставится результат -->
+<div id="result">Нажмите кнопку...</div>
 
+<!-- МИНИМАЛЬНЫЙ JAVASCRIPT (всего 5 строк!) -->
+<script>
+    async function getRate(currency) {
+        const response = await fetch(`/api/currency/rate?currency=${currency}`);
+        const rate = await response.text();
+        document.getElementById('result').innerHTML = `<strong>1 USD = ${rate} ${currency}</strong>`;
+    }
+</script>
 </body>
 </html>
